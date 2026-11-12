@@ -1,0 +1,6 @@
+Vendored so the page works with no internet (local hosting at the field).
+mqtt.min.js         mqtt@5.10.1        dist/mqtt.min.js           MIT
+uPlot.iife.min.js   uplot@1.6.30       dist/uPlot.iife.min.js     MIT
+uPlot.min.css       uplot@1.6.30       dist/uPlot.min.css         MIT
+three.module.min.js three@0.160.0      build/three.module.min.js  MIT
+OrbitControls.js    three@0.160.0      examples/jsm/controls/     MIT

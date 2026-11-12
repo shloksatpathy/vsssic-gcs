@@ -16,6 +16,7 @@ const STALE_S = 3;        // link shown as stale after this long without a packe
 const $ = (id) => document.getElementById(id);
 
 let client = null;
+let connected = false;
 let stateNames = {};
 let times = [], alts = [], vss = [];
 let count = 0, lost = 0, lastSeq = null, lastPacketAt = null;
@@ -166,7 +167,7 @@ function setLink(text, cls) {
 }
 
 setInterval(() => {
-  if (!client || !client.connected) return;
+  if (!connected) return;
   const age = lastPacketAt === null ? null : (performance.now() - lastPacketAt) / 1000;
   if (hostOnline === false) setLink("Host offline", "off");
   else if (hostPaused) setLink("Feed paused", "warn");
@@ -184,9 +185,28 @@ function connect(broker, sid) {
   setLink("Connecting…", "warn");
 
   client = mqtt.connect(broker, { reconnectPeriod: 2000, connectTimeout: 10000 });
-  client.on("connect", () => client.subscribe(`gs/${sid}/#`));
+  client.on("connect", () => { connected = true; client.subscribe(`gs/${sid}/#`); });
   client.on("message", onMessage);
-  client.on("offline", () => setLink("Disconnected", "off"));
+  client.on("offline", () => { connected = false; setLink("Disconnected", "off"); });
+}
+
+// Served by the host itself (no internet): one WebSocket to the host.
+// Each message is [kind length][kind][payload], kind as in the MQTT topics.
+function connectLocal(port) {
+  setLink("Connecting…", "warn");
+  const ws = new WebSocket(`ws://${location.hostname}:${port}/`);
+  ws.binaryType = "arraybuffer";
+  ws.onopen = () => { connected = true; clearData(); };
+  ws.onmessage = (e) => {
+    const data = new Uint8Array(e.data);
+    const kind = new TextDecoder().decode(data.subarray(1, 1 + data[0]));
+    onMessage(kind, data.subarray(1 + data[0]));
+  };
+  ws.onclose = () => {
+    connected = false;
+    setLink("Disconnected", "off");
+    setTimeout(() => connectLocal(port), 2000);
+  };
 }
 
 const params = new URLSearchParams(location.search);
@@ -201,4 +221,11 @@ $("connect").addEventListener("submit", (e) => {
   connect(broker, sid);
 });
 
-if ($("sid").value) connect($("broker").value, $("sid").value);
+// local.json exists only when the host app serves this page.
+const local = await fetch("local.json").then((r) => (r.ok ? r.json() : null));
+if (local) {
+  $("connect").style.display = "none";
+  connectLocal(local.ws_port);
+} else if ($("sid").value) {
+  connect($("broker").value, $("sid").value);
+}
