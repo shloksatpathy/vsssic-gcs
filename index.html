@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<title>VSSSIC Ground Station</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/uplot@1.6.30/dist/uPlot.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <img src="icon-192.png" alt="" class="logo">
+  <h1 id="station">VSSSIC Ground Station</h1>
+  <span id="link" class="pill off">Disconnected</span>
+</header>
+
+<form id="connect">
+  <input id="broker" placeholder="Broker (wss://…/mqtt)" required>
+  <input id="sid" placeholder="Station ID" required>
+  <button type="submit" id="connect-btn">Connect</button>
+</form>
+
+<section class="tiles">
+  <div class="tile"><span>State</span><b id="t-state">—</b></div>
+  <div class="tile"><span>Altitude</span><b id="t-alt">—</b></div>
+  <div class="tile"><span>Vert. speed</span><b id="t-vs">—</b></div>
+  <div class="tile"><span>Battery</span><b id="t-bat">—</b></div>
+  <div class="tile wide"><span>Position</span><b id="t-pos">—</b></div>
+  <div class="tile"><span>Packets</span><b id="t-count">0</b></div>
+  <div class="tile"><span>Loss</span><b id="t-loss">—</b></div>
+</section>
+
+<section class="charts">
+  <div class="chart"><h2>Altitude (m)</h2><div id="c-alt"></div></div>
+  <div class="chart"><h2>Vertical speed (m/s)</h2><div id="c-vs"></div></div>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>3D trajectory</h2>
+    <button type="button" id="reset-3d" class="small">Reset view</button>
+  </div>
+  <div id="c-3d"></div>
+  <p class="legend"><i class="sw live"></i>Live <i class="sw sim"></i>Simulated <i class="sw north"></i>North <span id="sim-info"></span></p>
+</section>
+
+<section class="table">
+  <h2>Recent packets</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Seq</th><th>T (s)</th><th>Alt (m)</th><th>VS (m/s)</th><th>Lat</th><th>Lon</th><th>State</th><th>Bat</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script src="https://unpkg.com/uplot@1.6.30/dist/uPlot.iife.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
